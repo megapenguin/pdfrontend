@@ -31,39 +31,72 @@ function ProfileInfo() {
   const [form] = Form.useForm();
   let Auth = useContext(AuthContext);
   //setting user info
+  const [picture, setPicture] = useState(null);
   const [filename, setFilename] = useState("Choose file");
   const [uploadedImagePath, setUploadedImagePath] = useState("");
   const [uploadImageStatus, setUploadImageStatus] = useState("none");
   const [imageStatus, setImageStatus] = useState(false);
   const [userInfo, setUserInfo] = useState(Auth.state.userData);
   const [profilePicture, setProfilePicture] = useState("");
+  const [fileList, setFileList] = useState([]);
+
   useEffect(() => {
     form.setFieldsValue({
       id: userInfo.id,
-      firstName: userInfo.firstName,
-      lastName: userInfo.lastName,
-      contactNumber: userInfo.contactNumber,
+      firstname: userInfo.firstname,
+      lastname: userInfo.lastname,
+      contactnumber: userInfo.contactnumber,
       email: userInfo.email,
       username: userInfo.username,
     });
   }, []);
-  const onFinish = (values) => {
-    values["profilePicture"] = profilePicture;
-    axios
-      .post("/api/v1/users/update_user", values)
-      .then((res) => {
-        Auth.state.userData.profilePicture = values.profilePicture;
-        Auth.state.userData.firstName = values.firstName;
-        Auth.state.userData.lastName = values.lastName;
-        Auth.state.userData.contactNumber = values.contactNumber;
-        Auth.state.userData.email = values.email;
-        Auth.state.userData.username = values.username;
-        Modal.success({
-          content: "Successfully updated profile info",
-          okButtonProps: {},
+  const onFinish = async (values) => {
+    values["profile"] = profilePicture;
+    console.log(values);
+    try {
+      //update user info
+      const res = await axios.put(
+        `/api/v1/users/update_user/${userInfo.id}`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${Auth.state.token}`,
+          },
+        }
+      );
+      if (res.data.status === "success") {
+        Auth.setState({
+          ...Auth.state,
+          userData: {
+            ...Auth.state.userData,
+            firstname: values.firstname,
+            lastname: values.lastname,
+            contactnumber: values.contactnumber,
+            email: values.email,
+            username: values.username,
+          },
         });
-      })
-      .catch((error) => console.log(error));
+        message.success("Profile updated successfully");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+    // axios.put("/api/v1/users/update_user", values).then((res) => {
+    //   Auth.state.userData.profilePicture = values.profilePicture;
+    //   Auth.state.userData.firstName = values.firstName;
+    //   Auth.state.userData.lastName = values.lastName;
+    //   Auth.state.userData.contactNumber = values.contactNumber;
+    //   Auth.state.userData.email = values.email;
+    //   Auth.state.userData.username = values.username;
+    //   Modal.success({
+    //     content: "Successfully updated profile info",
+    //     okButtonProps: {},
+    //   });
+    // });
+    // } catch (error) {
+    //   console.log(error);
+    // }
 
     console.log("Success:", values);
   };
@@ -76,7 +109,7 @@ function ProfileInfo() {
     axios
       .delete("/api/v1/images/delete_folder_image", {
         params: {
-          fileName: val.response.imageSmall,
+          fileName: val.response.smimagepath,
           fileId: val.response.id,
         },
       })
@@ -91,11 +124,11 @@ function ProfileInfo() {
 
   const uploadFile = {
     name: "file",
-    action: "/api/v1/images/add_image",
+    action: "/api/v1/images/upload_image",
     headers: {
       authorization: "authorization-text",
     },
-    data: { userId: userInfo.id, imageType: 1 },
+    data: { imageownerid: userInfo.id, imagetypeid: 1 },
     onChange(info) {
       console.log("info", info);
       if (info.file.status !== "uploading") {
@@ -107,7 +140,8 @@ function ProfileInfo() {
       }
       if (info.file.status === "done") {
         setImageStatus(true);
-        setProfilePicture(info.file.response.imageSmall);
+        console.log("done", info.file.response);
+        setProfilePicture(info.file.response.smimagepath);
         message.success(`${info.file.name} file uploaded Successfully.`);
       } else if (info.file.status === "error") {
         message.error(`${info.file.name} file upload Failed.`);
@@ -115,17 +149,19 @@ function ProfileInfo() {
       setUploadImageStatus(info.file.status);
       setFilename(info);
 
-      // 	axios
-      // 		.post("/api/v1/images/search_images", {
-      // 			userId: userInfo.id,
-      // 			imageType: 1,
-      // 		})
-      // 		.then((res) => {
-      // 			let data = res.data;
-      // 		})
-      // 		.catch((error) => console.log(error));
+      // axios
+      //   .post("/api/v1/images/search_image", {
+      //     imageOwnerId: userInfo.id,
+      //     imageReferenceId: 1,
+      //   })
+      //   .then((res) => {
+      //     let data = res.data;
+      //     setPicture(data);
+      //   })
+      //   .catch((error) => console.log(error));
     },
   };
+
   return (
     <Row justify="center">
       <Col>
@@ -138,7 +174,7 @@ function ProfileInfo() {
           }}
         >
           <div>
-            <Link to="/mainprofile">
+            <Link to="/main">
               <ArrowLeftOutlined style={{ marginBottom: "10px" }} />
             </Link>
           </div>
@@ -168,19 +204,7 @@ function ProfileInfo() {
                 marginTop: 5,
               }}
             ></Divider>
-            <ImgCrop rotate>
-              <Upload
-                {...uploadFile}
-                onRemove={removeImage}
-                listType="picture-card"
-                showUploadList={{ showPreviewIcon: false }}
-                maxCount={1}
-              >
-                <p style={{ fontWeight: "bold" }}>
-                  <PictureOutlined /> Upload Profile Picture
-                </p>
-              </Upload>
-            </ImgCrop>
+
             <Form
               form={form}
               name="basic"
@@ -196,6 +220,27 @@ function ProfileInfo() {
               onFinish={onFinish}
               onFinishFailed={onFinishFailed}
             >
+              <Form.Item
+                // getValueFromEvent={normFile}
+                name="profilePicture"
+                valuePropName="fileList"
+                style={{ justifyContent: "center" }}
+              >
+                <ImgCrop rotate>
+                  <Upload
+                    {...uploadFile}
+                    onRemove={removeImage}
+                    listType="picture-card"
+                    showUploadList={{ showPreviewIcon: false }}
+                    maxCount={1}
+                  >
+                    {imageStatus ? "" : "+Upload"}
+                    {/* <p style={{ fontWeight: "bold" }}>
+                  <PictureOutlined /> Upload Profile Picture
+                </p> */}
+                  </Upload>
+                </ImgCrop>
+              </Form.Item>
               <Form.Item label="Id:" name="id">
                 <Input
                   disabled={true}
@@ -204,14 +249,14 @@ function ProfileInfo() {
                 />
               </Form.Item>
 
-              <Form.Item label="First Name: " name="firstName">
+              <Form.Item label="First Name: " name="firstname">
                 <Input style={{ border: 0, borderBottom: "2px solid black" }} />
               </Form.Item>
 
-              <Form.Item label="Last Name:" name="lastName">
+              <Form.Item label="Last Name:" name="lastname">
                 <Input style={{ border: 0, borderBottom: "2px solid black" }} />
               </Form.Item>
-              <Form.Item label="Contact #:" name="contactNumber">
+              <Form.Item label="Contact #:" name="contactnumber">
                 <Input style={{ border: 0, borderBottom: "2px solid black" }} />
               </Form.Item>
 

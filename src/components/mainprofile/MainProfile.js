@@ -22,14 +22,6 @@ function MainProfile() {
   const [userInfo, setUserInfo] = useState(Auth.state.userData);
   useEffect(() => {
     console.log("userInfo", userInfo);
-    // axios
-
-    // 	.post("/api/v1/titles/title", { value: value[1] })
-    // 	.then((res) => {
-
-    // 	})
-
-    // 	.catch((error) => console.log(error));
   }, []);
 
   const logout = () => {
@@ -54,16 +46,18 @@ function MainProfile() {
           }}
         >
           <div>
-            <Link to="/homepage">
+            <Link to="/main">
               <ArrowLeftOutlined style={{ marginBottom: "10px" }} />
             </Link>
-            <Button
+            <a
+              style={{ float: "right" }}
+              className="password"
               onClick={() => {
                 logout();
               }}
             >
               Logout
-            </Button>
+            </a>
           </div>
 
           <div
@@ -94,7 +88,7 @@ function MainProfile() {
                     borderColor: "black",
                     borderRadius: "75px",
                   }}
-                  src={`/api/v1/images/${userInfo.profilePicture}`}
+                  src={`/api/v1/images/${userInfo.profile}`}
                 />
               )}
             </div>

@@ -12,15 +12,16 @@ import {
 } from "antd";
 import logo from "./parklogo.png";
 import { BoldOutlined, ArrowLeftOutlined } from "@ant-design/icons";
-import { Link, withRouter } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../GlobalContext/AuthContext";
 
 function Provider({ history }) {
   const Auth = useContext(AuthContext);
+  const navigateTo = useNavigate();
 
   const [userInfo, setUserInfo] = useState(Auth.state.userData);
   const gotoProviderPage = () => {
-    if (userInfo.status === 1) {
+    if (userInfo.status === true) {
       history.push("/provider");
     } else {
       Modal.error({
@@ -29,9 +30,14 @@ function Provider({ history }) {
     }
   };
   const logout = () => {
-    localStorage.clear();
-    Auth.state.isAuthenticated = false;
-    console.log(Auth);
+    try {
+      localStorage.clear();
+      Auth.state.isAuthenticated = false;
+      console.log(Auth);
+      navigateTo("/login");
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <Row justify="center">
@@ -45,7 +51,7 @@ function Provider({ history }) {
           }}
         >
           <div>
-            <Link to="/homepage">
+            <Link to="/main">
               <ArrowLeftOutlined style={{ marginBottom: "10px" }} />
             </Link>
           </div>
@@ -59,7 +65,7 @@ function Provider({ history }) {
           >
             <Image width={200} src={logo} />
 
-            {userInfo.providerStatus === 0 ? (
+            {userInfo.providerstatus === false ? (
               <>
                 <p
                   style={{
@@ -75,7 +81,7 @@ function Provider({ history }) {
 
                 <Row justify="center">
                   <Col>
-                    <Link to="/registerprovider">
+                    <Link to="/providerregistration">
                       <Button
                         className="loginButton"
                         type="primary"

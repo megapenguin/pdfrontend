@@ -42,13 +42,13 @@ function App() {
           element={
             <LoginProtectedRoutes
               isLogin={false}
-              component={MainProfileDashboard}
+              component={HomePageDashboard}
               auth={auth}
             />
           }
         />
         <Route
-          path="/"
+          path="/mainprofile"
           element={
             <LoginProtectedRoutes
               isLogin={false}
@@ -57,6 +57,56 @@ function App() {
             />
           }
         />
+        <Route
+          path="/manageparkingspace"
+          element={
+            <LoginProtectedRoutes
+              isLogin={false}
+              component={ManageSpaceDashboard}
+              auth={auth}
+            />
+          }
+        />
+        <Route
+          path="/profileinfo"
+          element={
+            <LoginProtectedRoutes
+              isLogin={false}
+              component={ProfileInfoDashboard}
+              auth={auth}
+            />
+          }
+        />
+        <Route
+          path="/provider"
+          element={
+            <LoginProtectedRoutes
+              isLogin={false}
+              component={ProviderDashboard}
+              auth={auth}
+            />
+          }
+        />
+        <Route
+          path="/providerregistration"
+          element={
+            <LoginProtectedRoutes
+              isLogin={false}
+              component={ProviderRegistrationDashboard}
+              auth={auth}
+            />
+          }
+        />
+        {/* <Route
+          path="/"
+          element={
+            <LoginProtectedRoutes
+              isLogin={false}
+              component={MainProfileDashboard}
+              auth={auth}
+            />
+          }
+        /> */}
 
         <Route path="*" element={<h1>Page not found</h1>} />
       </Routes>

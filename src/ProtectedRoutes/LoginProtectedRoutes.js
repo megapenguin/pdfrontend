@@ -10,7 +10,11 @@ function LoginProtectedRoutes({
   // console.log("login routes", isLogin, auth.state.isAuthenticated);
 
   if (isLogin) {
-    return auth.state.isAuthenticated ? <Navigate to={"/"} /> : <Component />;
+    return auth.state.isAuthenticated ? (
+      <Navigate to={"/main"} />
+    ) : (
+      <Component />
+    );
   }
 
   if (auth.state.isAuthenticated) {

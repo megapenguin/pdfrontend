@@ -1,29 +1,29 @@
 import { Card, Row, Col, Image, Form, Input, Button, Checkbox } from "antd";
 import logo from "./parklogo.png";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Link, withRouter } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Cascader, Select, AutoComplete } from "antd";
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../../GlobalContext/AuthContext";
 function ProviderRegistration({ history }) {
   const Auth = useContext(AuthContext);
-
+  const navigateTo = useNavigate();
   const [userInfo, setUserInfo] = useState(Auth.state.userData);
   const onFinish = async (values) => {
-    values["userId"] = userInfo.id;
+    values["userid"] = userInfo.id;
+    values["parkinglotstatus"] = false;
     try {
       axios
-        .post("/api/v1/providers/register", values)
+        .post("/api/v1/parkinglots/add_parkinglot", values)
         .then((res) => {
           axios
-            .post("/api/v1/users/update_user", {
-              providerStatus: 1,
-              id: userInfo.id,
+            .put(`/api/v1/users/update_user/${userInfo.id}`, {
+              providerstatus: true,
             })
             .then(() => {
-              Auth.state.userData.providerStatus = 1;
-              history.push("/homepage");
+              Auth.state.userData.providerstatus = true;
+              navigateTo("/main");
             });
         })
 
@@ -49,7 +49,7 @@ function ProviderRegistration({ history }) {
           }}
         >
           <div>
-            <Link to="/register">
+            <Link to="/provider">
               <ArrowLeftOutlined width={300} height={300} />
             </Link>
           </div>
@@ -77,7 +77,7 @@ function ProviderRegistration({ history }) {
               onFinishFailed={onFinishFailed}
             >
               <Form.Item
-                name="contactNumber"
+                name="parkinglotcontact"
                 rules={[
                   {
                     required: true,
@@ -85,26 +85,10 @@ function ProviderRegistration({ history }) {
                   },
                 ]}
               >
-                <Input placeholder="Contact Number" />
-              </Form.Item>
-
-              <Form.Item
-                name="email"
-                rules={[
-                  {
-                    type: "email",
-                    message: "The input is not valid E-mail!",
-                  },
-                  {
-                    required: true,
-                    message: "Please input your E-mail!",
-                  },
-                ]}
-              >
-                <Input placeholder="Email Address" />
+                <Input placeholder="Parking Lot Contact Number" />
               </Form.Item>
               <Form.Item
-                name="address"
+                name="parkinglotaddress"
                 rules={[
                   {
                     required: true,
@@ -112,7 +96,18 @@ function ProviderRegistration({ history }) {
                   },
                 ]}
               >
-                <Input placeholder="Address" />
+                <Input placeholder="Parking Lot Address" />
+              </Form.Item>
+              <Form.Item
+                name="parkinglotdescription"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input description",
+                  },
+                ]}
+              >
+                <Input placeholder="Parking Lot Descirption" />
               </Form.Item>
 
               <Form.Item wrapperCol={{}}>

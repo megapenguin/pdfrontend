@@ -53,7 +53,6 @@ function ManageSpace({ history }) {
   };
   useEffect(() => {
     axios
-
       .post("/api/v1/providers/findprovider", { value: userInfo.id })
       .then((res) => {
         let data = res.data[0];
@@ -87,7 +86,7 @@ function ManageSpace({ history }) {
           }}
         >
           <div>
-            <Link to="/homepage">
+            <Link to="/main">
               <ArrowLeftOutlined style={{ marginBottom: "10px" }} />
             </Link>
           </div>
@@ -119,7 +118,7 @@ function ManageSpace({ history }) {
                       <Avatar
                         size={64}
                         shape="square"
-                        src={`/api/v1/images/${item.parkinglotPicture}`}
+                        src={`/api/v1/images/${item.parkinglotimage}`}
                       />
                     }
                     title={<a href="https://ant.design">{item.title}</a>}

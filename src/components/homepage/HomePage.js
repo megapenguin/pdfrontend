@@ -12,17 +12,18 @@ import {
 } from "antd";
 import logo from "./parklogo.png";
 import { BoldOutlined } from "@ant-design/icons";
-import { Link, withRouter } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../GlobalContext/AuthContext";
 
 function HomePage({ history }) {
   const Auth = useContext(AuthContext);
+  const navigateTo = useNavigate();
 
   const [userInfo, setUserInfo] = useState(Auth.state.userData);
   const gotoProviderPage = () => {
-    if (userInfo.status === 1) {
+    if (userInfo.status === true) {
       console.log("click");
-      history.push("/provider");
+      navigateTo("/provider");
     } else {
       Modal.error({
         content: "You are not a verified user!",
@@ -30,10 +31,14 @@ function HomePage({ history }) {
     }
   };
   const logout = () => {
-    localStorage.clear();
-    Auth.state.isAuthenticated = false;
-    history.push("/login");
-    console.log(Auth);
+    try {
+      localStorage.clear();
+      Auth.state.isAuthenticated = false;
+      console.log(Auth);
+      navigateTo("/login");
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <Row justify="center">
