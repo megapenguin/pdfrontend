@@ -8,7 +8,7 @@ function LoginProtectedRoutes({
   layout: Layout,
 }) {
   // console.log("login routes", isLogin, auth.state.isAuthenticated);
-
+  console.log(isLogin);
   if (isLogin) {
     return auth.state.isAuthenticated ? (
       <Navigate to={"/main"} />

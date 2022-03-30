@@ -50,7 +50,7 @@ function Login({ history }) {
           }}
         >
           <div>
-            <Link to="/register">
+            <Link to="/">
               <ArrowLeftOutlined width={300} height={300} />
             </Link>
           </div>

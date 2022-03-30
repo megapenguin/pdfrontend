@@ -1,25 +1,33 @@
-import { Card, Row, Col, Image, Form, Input, Button, Checkbox } from "antd";
+import {
+  Card,
+  Row,
+  Col,
+  Image,
+  Form,
+  Input,
+  Button,
+  Checkbox,
+  InputNumber,
+} from "antd";
 import logo from "./parklogo.png";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Link, withRouter } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Cascader, Select, AutoComplete } from "antd";
 import React, { useState } from "react";
 import axios from "axios";
 
 function RegistrationForm({ history }) {
+  const navigateTo = useNavigate();
   const onFinish = async (values) => {
-    values["status"] = "user";
-    values["profilePicture"] = "";
+    values["status"] = false;
+    values["profile"] = "none";
+    values["providerstatus"] = false;
 
     try {
-      axios
-        .post("/api/v1/users/register", values)
-        .then((res) => {
-          history.push("/login");
-        })
-
-        .catch((error) => console.log(error));
-      console.log("value", values);
+      let data = axios.post("/api/v1/users/register_user", values);
+      if (data) {
+        navigateTo("/");
+      }
     } catch (error) {
       console.log(error);
     }
@@ -40,7 +48,7 @@ function RegistrationForm({ history }) {
           }}
         >
           <div>
-            <Link to="/register">
+            <Link to="/">
               <ArrowLeftOutlined width={300} height={300} />
             </Link>
           </div>
@@ -51,7 +59,7 @@ function RegistrationForm({ history }) {
               marginTop: "10px",
             }}
           >
-            <Image width={30} src={logo} />
+            <Image width={100} src={logo} />
 
             <Form
               name="basic"
@@ -69,7 +77,7 @@ function RegistrationForm({ history }) {
             >
               <Form.Item
                 style={{ marginTop: "30px" }}
-                name="firstName"
+                name="firstname"
                 rules={[
                   {
                     required: true,
@@ -80,7 +88,7 @@ function RegistrationForm({ history }) {
                 <Input placeholder="Firstname" />
               </Form.Item>
               <Form.Item
-                name="lastName"
+                name="lastname"
                 rules={[
                   {
                     required: true,
@@ -91,7 +99,7 @@ function RegistrationForm({ history }) {
                 <Input placeholder="Lastname" />
               </Form.Item>
               <Form.Item
-                name="contactNumber"
+                name="contactnumber"
                 rules={[
                   {
                     required: true,
@@ -99,7 +107,10 @@ function RegistrationForm({ history }) {
                   },
                 ]}
               >
-                <Input placeholder="Contact Number" />
+                <InputNumber
+                  style={{ width: "100%" }}
+                  placeholder="Contact Number"
+                />
               </Form.Item>
 
               <Form.Item

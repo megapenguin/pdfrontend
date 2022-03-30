@@ -70,7 +70,7 @@ function AuthContextProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ state, authenticate }}>
+    <AuthContext.Provider value={{ state, authenticate, dispatch }}>
       {children}
     </AuthContext.Provider>
   );

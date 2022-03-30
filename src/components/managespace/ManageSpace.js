@@ -15,12 +15,14 @@ import {
 import logo from "./parklogo.png";
 import { BoldOutlined } from "@ant-design/icons";
 import { ArrowLeftOutlined, UserOutlined } from "@ant-design/icons";
-import { Link, withRouter } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../GlobalContext/AuthContext";
+import parklogo from "./parklogo.png";
 import axios from "axios";
 
 function ManageSpace({ history }) {
   const Auth = useContext(AuthContext);
+  const navigateTo = useNavigate();
   const [parkinglot, setParkinglot] = useState([]);
   const data = [
     {
@@ -48,32 +50,31 @@ function ManageSpace({ history }) {
       });
     }
   };
-  const gotoAddParkingLot = () => {
-    history.push("/addparkinglot");
-  };
   useEffect(() => {
+    //find parkinglot byuserid
     axios
-      .post("/api/v1/providers/findprovider", { value: userInfo.id })
+      .get(`api/v1/parkinglots/find_parkinglot_byuserid/${userInfo.id}`)
       .then((res) => {
-        let data = res.data[0];
-        axios
-          .post("/api/v1/parkinglots/findparkinglot", { value: data.id })
-          .then((res) => {
-            console.log("parkinglot", res.data);
-            let data = res.data.map((data) => {
-              return {
-                title: data.parkinglotName,
-                parkinglotPicture: data.parkinglotPicture,
-              };
-            });
-            setParkinglot(data);
-          });
-
-        console.log("provider", res.data);
+        console.log(res.data);
+        let data = res.data.map((data) => {
+          return {
+            title: data.parkinglotname,
+            description: data.parkinglotdescription,
+            image: data.parkinglotimage,
+          };
+        });
+        console.log(data);
+        setParkinglot(data);
       })
-
-      .catch((error) => console.log(error));
+      .catch((err) => {
+        console.log(err);
+      });
   }, []);
+
+  const gotoAddParkingLot = async () => {
+    navigateTo("/providerregistration");
+  };
+
   return (
     <Row justify="center">
       <Col>
@@ -118,10 +119,15 @@ function ManageSpace({ history }) {
                       <Avatar
                         size={64}
                         shape="square"
-                        src={`/api/v1/images/${item.parkinglotimage}`}
+                        src={
+                          item.parkinglotimage
+                            ? `/api/v1/images/${item.parkinglotimage}`
+                            : parklogo
+                        }
                       />
                     }
                     title={<a href="https://ant.design">{item.title}</a>}
+                    description={item.description}
                   />
                 </List.Item>
               )}

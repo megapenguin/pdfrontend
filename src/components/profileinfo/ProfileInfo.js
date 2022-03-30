@@ -21,7 +21,7 @@ import {
   UploadOutlined,
   PictureOutlined,
 } from "@ant-design/icons";
-import { Link, withRouter } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ImgCrop from "antd-img-crop";
 import { AuthContext } from "../../GlobalContext/AuthContext";
 import axios from "axios";
@@ -29,15 +29,17 @@ import axios from "axios";
 function ProfileInfo() {
   const { Title } = Typography;
   const [form] = Form.useForm();
-  let Auth = useContext(AuthContext);
+  let auth = useContext(AuthContext);
+  const navigateTo = useNavigate();
   //setting user info
   const [picture, setPicture] = useState(null);
   const [filename, setFilename] = useState("Choose file");
   const [uploadedImagePath, setUploadedImagePath] = useState("");
   const [uploadImageStatus, setUploadImageStatus] = useState("none");
   const [imageStatus, setImageStatus] = useState(false);
-  const [userInfo, setUserInfo] = useState(Auth.state.userData);
-  const [profilePicture, setProfilePicture] = useState("");
+  const [userInfo, setUserInfo] = useState(auth.state.userData);
+  const [profilePicture, setProfilePicture] = useState("none");
+  const [profilePictureId, setProfilePictureId] = useState("");
   const [fileList, setFileList] = useState([]);
 
   useEffect(() => {
@@ -51,75 +53,79 @@ function ProfileInfo() {
     });
   }, []);
   const onFinish = async (values) => {
-    values["profile"] = profilePicture;
-    console.log(values);
+    if (fileList.length > 0) {
+      values["profile"] = fileList[0].response.smimagepath;
+    } else {
+      values["profile"] = userInfo.profile;
+    }
+    console.log("user values", values, fileList.response);
     try {
       //update user info
-      const res = await axios.put(
+      let res = await axios.put(
         `/api/v1/users/update_user/${userInfo.id}`,
         values,
         {
           headers: {
-            Authorization: `Bearer ${Auth.state.token}`,
+            authorization: `Bearer ${auth.state.token}`,
           },
         }
       );
-      if (res.data.status === "success") {
-        Auth.setState({
-          ...Auth.state,
+      console.log("update status", res);
+      if (res.data) {
+        auth.dispatch({
+          type: "UPDATE_USER_DATA",
           userData: {
-            ...Auth.state.userData,
-            firstname: values.firstname,
-            lastname: values.lastname,
-            contactnumber: values.contactnumber,
-            email: values.email,
-            username: values.username,
+            ...values,
           },
         });
+        navigateTo("/mainprofile");
         message.success("Profile updated successfully");
       }
     } catch (error) {
       console.log(error);
     }
-
-    // axios.put("/api/v1/users/update_user", values).then((res) => {
-    //   Auth.state.userData.profilePicture = values.profilePicture;
-    //   Auth.state.userData.firstName = values.firstName;
-    //   Auth.state.userData.lastName = values.lastName;
-    //   Auth.state.userData.contactNumber = values.contactNumber;
-    //   Auth.state.userData.email = values.email;
-    //   Auth.state.userData.username = values.username;
-    //   Modal.success({
-    //     content: "Successfully updated profile info",
-    //     okButtonProps: {},
-    //   });
-    // });
-    // } catch (error) {
-    //   console.log(error);
-    // }
-
     console.log("Success:", values);
+  };
+
+  const cancelUpdate = async (profilePicture, profilePictureId) => {
+    try {
+      let data = axios.delete("/api/v1/images/delete_folder_image", {
+        params: {
+          fileName: profilePicture,
+          fileId: profilePictureId,
+        },
+      });
+
+      if (data) {
+        setUploadImageStatus("removed");
+        navigateTo("/mainprofile");
+        setUploadedImagePath();
+      }
+    } catch (error) {}
+    navigateTo("/mainprofile");
   };
 
   const onFinishFailed = (errorInfo) => {
     console.log("Failed:", errorInfo);
   };
-  const removeImage = (val) => {
-    console.log("Removed image", filename, val);
-    axios
-      .delete("/api/v1/images/delete_folder_image", {
+  const removeImage = async (val) => {
+    // console.log("Removed image", filename, val);
+    try {
+      let data = axios.delete("/api/v1/images/delete_folder_image", {
         params: {
           fileName: val.response.smimagepath,
           fileId: val.response.id,
         },
-      })
-      .then((res) => {
+      });
+
+      if (data) {
         setUploadImageStatus("removed");
-        // console.log(res.data);
-      })
-      .catch((error) => console.log(error));
-    setUploadedImagePath();
-    message.error(`File removed Successfully.`);
+      }
+
+      setUploadedImagePath();
+      setImageStatus(false);
+      // message.error(`File removed Successfully.`);
+    } catch (error) {}
   };
 
   const uploadFile = {
@@ -142,24 +148,36 @@ function ProfileInfo() {
         setImageStatus(true);
         console.log("done", info.file.response);
         setProfilePicture(info.file.response.smimagepath);
+        setProfilePictureId(info.file.response.id);
         message.success(`${info.file.name} file uploaded Successfully.`);
       } else if (info.file.status === "error") {
         message.error(`${info.file.name} file upload Failed.`);
       }
       setUploadImageStatus(info.file.status);
       setFilename(info);
-
-      // axios
-      //   .post("/api/v1/images/search_image", {
-      //     imageOwnerId: userInfo.id,
-      //     imageReferenceId: 1,
-      //   })
-      //   .then((res) => {
-      //     let data = res.data;
-      //     setPicture(data);
-      //   })
-      //   .catch((error) => console.log(error));
     },
+  };
+
+  const onChange = ({ fileList: newFileList }) => {
+    setFileList(newFileList);
+    setImageStatus(true);
+
+    console.log(newFileList);
+  };
+
+  const onPreview = async (file) => {
+    let src = file.url;
+    if (!src) {
+      src = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file.originFileObj);
+        reader.onload = () => resolve(reader.result);
+      });
+    }
+    const image = new Image();
+    image.src = src;
+    const imgWindow = window.open(src);
+    imgWindow.document.write(image.outerHTML);
   };
 
   return (
@@ -174,9 +192,12 @@ function ProfileInfo() {
           }}
         >
           <div>
-            <Link to="/main">
-              <ArrowLeftOutlined style={{ marginBottom: "10px" }} />
-            </Link>
+            <ArrowLeftOutlined
+              style={{ marginBottom: "10px" }}
+              onClick={() => {
+                cancelUpdate(profilePicture, profilePictureId);
+              }}
+            />
           </div>
 
           <div
@@ -196,7 +217,26 @@ function ProfileInfo() {
             >
               PROFILE INFO
             </p>
-
+            <ImgCrop rotate>
+              <Upload
+                // {...uploadFile}
+                onRemove={removeImage}
+                // listType="picture-card"
+                // showUploadList={{ showPreviewIcon: false }}
+                // maxCount={1}
+                action="/api/v1/images/upload_image"
+                listType="picture-card"
+                fileList={fileList}
+                onChange={onChange}
+                onPreview={onPreview}
+              >
+                {/* {imageStatus ? "" : "+Upload"} */}
+                {fileList.length !== 0 ? "" : "Upload"}
+                {/* <p style={{ fontWeight: "bold" }}>
+                  <PictureOutlined /> Upload Profile Picture
+                </p> */}
+              </Upload>
+            </ImgCrop>
             <Divider
               style={{
                 backgroundColor: "#B2BEB5",
@@ -220,27 +260,6 @@ function ProfileInfo() {
               onFinish={onFinish}
               onFinishFailed={onFinishFailed}
             >
-              <Form.Item
-                // getValueFromEvent={normFile}
-                name="profilePicture"
-                valuePropName="fileList"
-                style={{ justifyContent: "center" }}
-              >
-                <ImgCrop rotate>
-                  <Upload
-                    {...uploadFile}
-                    onRemove={removeImage}
-                    listType="picture-card"
-                    showUploadList={{ showPreviewIcon: false }}
-                    maxCount={1}
-                  >
-                    {imageStatus ? "" : "+Upload"}
-                    {/* <p style={{ fontWeight: "bold" }}>
-                  <PictureOutlined /> Upload Profile Picture
-                </p> */}
-                  </Upload>
-                </ImgCrop>
-              </Form.Item>
               <Form.Item label="Id:" name="id">
                 <Input
                   disabled={true}

@@ -19,9 +19,10 @@ function MainProfile() {
   const Auth = useContext(AuthContext);
   const navigateTo = useNavigate();
   //setting user info
-  const [userInfo, setUserInfo] = useState(Auth.state.userData);
+  const [userInfo, setUserInfo] = useState({});
   useEffect(() => {
     console.log("userInfo", userInfo);
+    setUserInfo(Auth.state.userData);
   }, []);
 
   const logout = () => {
@@ -78,7 +79,7 @@ function MainProfile() {
               MY PROFILE
             </p>
             <div>
-              {userInfo.profilePicture == "" ? (
+              {userInfo.profile === "none" ? (
                 <Avatar size={60} icon={<UserOutlined />} />
               ) : (
                 <Image
