@@ -128,35 +128,35 @@ function ProfileInfo() {
     } catch (error) {}
   };
 
-  const uploadFile = {
-    name: "file",
-    action: "/api/v1/images/upload_image",
-    headers: {
-      authorization: "authorization-text",
-    },
-    data: { imageownerid: userInfo.id, imagetypeid: 1 },
-    onChange(info) {
-      console.log("info", info);
-      if (info.file.status !== "uploading") {
-        //console.log("uploading", info.file, info.fileList);
-      }
-      if (info.file.status === "removed") {
-        setImageStatus(false);
-        setProfilePicture("");
-      }
-      if (info.file.status === "done") {
-        setImageStatus(true);
-        console.log("done", info.file.response);
-        setProfilePicture(info.file.response.smimagepath);
-        setProfilePictureId(info.file.response.id);
-        message.success(`${info.file.name} file uploaded Successfully.`);
-      } else if (info.file.status === "error") {
-        message.error(`${info.file.name} file upload Failed.`);
-      }
-      setUploadImageStatus(info.file.status);
-      setFilename(info);
-    },
-  };
+  // const uploadFile = {
+  //   name: "file",
+  //   action: "/api/v1/images/upload_image",
+  //   headers: {
+  //     authorization: "authorization-text",
+  //   },
+  //   data: { imageownerid: userInfo.id, imagetypeid: 1 },
+  //   onChange(info) {
+  //     console.log("info", info);
+  //     if (info.file.status !== "uploading") {
+  //       //console.log("uploading", info.file, info.fileList);
+  //     }
+  //     if (info.file.status === "removed") {
+  //       setImageStatus(false);
+  //       setProfilePicture("");
+  //     }
+  //     if (info.file.status === "done") {
+  //       setImageStatus(true);
+  //       console.log("done", info.file.response);
+  //       setProfilePicture(info.file.response.smimagepath);
+  //       setProfilePictureId(info.file.response.id);
+  //       message.success(`${info.file.name} file uploaded Successfully.`);
+  //     } else if (info.file.status === "error") {
+  //       message.error(`${info.file.name} file upload Failed.`);
+  //     }
+  //     setUploadImageStatus(info.file.status);
+  //     setFilename(info);
+  //   },
+  // };
 
   const onChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);

@@ -40,6 +40,16 @@ function App() {
               }
             />
             <Route
+              path="/findparkingspace"
+              element={
+                <LoginProtectedRoutes
+                  isLogin={false}
+                  component={FindParkingSpaceDashboard}
+                  auth={auth}
+                />
+              }
+            />
+            <Route
               path="/login"
               element={
                 <LoginProtectedRoutes

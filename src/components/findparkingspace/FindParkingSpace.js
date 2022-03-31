@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import parklogo from "./parklogo.png";
 import {
   Card,
   Row,
@@ -14,12 +15,31 @@ import {
   Skeleton,
   Drawer,
   Divider,
+  message,
 } from "antd";
 import reqwest from "reqwest";
 import { ArrowLeftOutlined, AudioOutlined } from "@ant-design/icons";
 import { Link, withRouter } from "react-router-dom";
+import axios from "axios";
 
 function FindParkingSpace() {
+  const [parkinglot, setParkinglot] = useState([]);
+
+  useEffect(() => {
+    //get all parkinglot
+    axios.get("api/v1/parkinglots/getall").then((res) => {
+      let data = res.data.map((data) => {
+        return {
+          id: data.id,
+          title: data.parkinglotname,
+          description: data.parkinglotdescription,
+          image: data.parkinglotimage,
+        };
+      });
+      setParkinglot(data);
+    });
+  }, []);
+
   const onFinish = (values) => {
     console.log("Success:", values);
   };
@@ -37,7 +57,29 @@ function FindParkingSpace() {
     />
   );
 
-  const onSearch = (value) => console.log(value);
+  const onSearch = async (value) => {
+    if (value) {
+      try {
+        let newdata = await axios.get(
+          `api/v1/parkinglots/search_parkinglot/${value}`
+        );
+        let parkinglotdata = newdata.data.map((data) => {
+          return {
+            id: data.id,
+            title: data.parkinglotname,
+            description: data.parkinglotdescription,
+            image: data.parkinglotimage,
+          };
+        });
+        setParkinglot(parkinglotdata);
+        console.log(newdata);
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      message.error("Please enter the name or address of the parkinglot");
+    }
+  };
 
   return (
     <Row justify="center">
@@ -95,30 +137,32 @@ function FindParkingSpace() {
                         onSearch={onSearch}
                         enterButton
                       />
-                      <p>shana</p>
                     </Space>
-                    <p
-                      style={{
-                        fontSize: 12,
-                        marginTop: 50,
-                        color: "#4B6587",
-                        fontFamily: "fantasy",
-                        textAlign: "left",
-                      }}
-                    >
-                      Near You
-                    </p>
-                    <p
-                      style={{
-                        fontSize: 12,
-                        marginTop: 100,
-                        color: "#4B6587",
-                        fontFamily: "fantasy",
-                        textAlign: "left",
-                      }}
-                    >
-                      Popular
-                    </p>
+                    <List
+                      itemLayout="horizontal"
+                      dataSource={parkinglot}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <List.Item.Meta
+                            avatar={
+                              <Avatar
+                                size={64}
+                                shape="square"
+                                src={
+                                  item.parkinglotimage
+                                    ? `/api/v1/images/${item.parkinglotimage}`
+                                    : parklogo
+                                }
+                              />
+                            }
+                            title={
+                              <a href="https://ant.design">{item.title}</a>
+                            }
+                            description={item.description}
+                          />
+                        </List.Item>
+                      )}
+                    />
 
                     <Link to="/login">
                       <Button
