@@ -1,29 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import parklogo from "./parklogo.png";
 import {
   Card,
   Row,
   Col,
-  Image,
   Form,
   Input,
   Button,
-  Checkbox,
   Space,
   List,
   Avatar,
-  Skeleton,
-  Drawer,
-  Divider,
   message,
 } from "antd";
-import reqwest from "reqwest";
+
 import { ArrowLeftOutlined, AudioOutlined } from "@ant-design/icons";
-import { Link, withRouter } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../GlobalContext/AuthContext";
 import axios from "axios";
 
 function FindParkingSpace() {
+  const Auth = useContext(AuthContext);
   const [parkinglot, setParkinglot] = useState([]);
+  const navigateTo = useNavigate();
 
   useEffect(() => {
     //get all parkinglot
@@ -32,8 +30,9 @@ function FindParkingSpace() {
         return {
           id: data.id,
           title: data.parkinglotname,
-          description: data.parkinglotdescription,
+          description: data.parkinglotaddress,
           image: data.parkinglotimage,
+          content: data.parkinglotdescription,
         };
       });
       setParkinglot(data);
@@ -67,8 +66,9 @@ function FindParkingSpace() {
           return {
             id: data.id,
             title: data.parkinglotname,
-            description: data.parkinglotdescription,
+            description: data.parkinglotaddress,
             image: data.parkinglotimage,
+            content: data.parkinglotdescription,
           };
         });
         setParkinglot(parkinglotdata);
@@ -78,6 +78,17 @@ function FindParkingSpace() {
       }
     } else {
       message.error("Please enter the name or address of the parkinglot");
+    }
+  };
+
+  const logout = () => {
+    try {
+      localStorage.clear();
+      Auth.state.isAuthenticated = false;
+      console.log(Auth);
+      navigateTo("/login");
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -93,7 +104,7 @@ function FindParkingSpace() {
           }}
         >
           <div>
-            <Link to="/register">
+            <Link to="/main">
               <ArrowLeftOutlined width={300} height={300} />
             </Link>
           </div>
@@ -139,15 +150,19 @@ function FindParkingSpace() {
                       />
                     </Space>
                     <List
-                      itemLayout="horizontal"
+                      itemLayout="vertical"
                       dataSource={parkinglot}
                       renderItem={(item) => (
-                        <List.Item>
-                          <List.Item.Meta
-                            avatar={
-                              <Avatar
-                                size={64}
-                                shape="square"
+                        <>
+                          <List.Item
+                            style={{
+                              marginTop: "10px",
+                              fontSize: "13px",
+                            }}
+                            extra={
+                              <img
+                                width={100}
+                                alt="logo"
                                 src={
                                   item.parkinglotimage
                                     ? `/api/v1/images/${item.parkinglotimage}`
@@ -155,31 +170,50 @@ function FindParkingSpace() {
                                 }
                               />
                             }
-                            title={
-                              <a href="https://ant.design">{item.title}</a>
-                            }
-                            description={item.description}
-                          />
-                        </List.Item>
+                          >
+                            <List.Item.Meta
+                              // avatar={
+                              //   <Avatar
+                              //     size={64}
+                              //     shape="square"
+                              //     src={
+                              //       item.parkinglotimage
+                              //         ? `/api/v1/images/${item.parkinglotimage}`
+                              //         : parklogo
+                              //     }
+                              //   />
+                              // }
+                              title={item.title}
+                              description={item.description}
+                            />
+                          </List.Item>
+                          <Button
+                            block
+                            type="primary"
+                            style={{ marginBottom: "10px" }}
+                          >
+                            Reserve
+                          </Button>
+                        </>
                       )}
                     />
-
-                    <Link to="/login">
-                      <Button
-                        className="loginButton"
-                        type="primary"
-                        htmlType="submit"
-                        block
-                        style={{
-                          borderRadius: "25px",
-                          background: "red",
-                          border: "none",
-                          marginTop: 100,
-                        }}
-                      >
-                        LOGOUT
-                      </Button>
-                    </Link>
+                    <Button
+                      className="loginButton"
+                      type="primary"
+                      htmlType="submit"
+                      block
+                      onClick={() => {
+                        logout();
+                      }}
+                      style={{
+                        borderRadius: "25px",
+                        background: "red",
+                        border: "none",
+                        marginTop: 100,
+                      }}
+                    >
+                      LOGOUT
+                    </Button>
                   </Col>
                 </Row>
               </Form.Item>
